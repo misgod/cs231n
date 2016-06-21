@@ -79,7 +79,19 @@ def svm_loss_vectorized(W, X, y, reg):
   # Implement a vectorized version of the structured SVM loss, storing the    #
   # result in loss.                                                           #
   #############################################################################
-  pass
+ 
+  num_train = X.shape[0]  
+  scores = X.dot(W)  
+  correct_class_score = scores[np.arange(num_train), y]
+    
+  margin = (scores.T - correct_class_score).T + 1
+  margin[np.arange(num_train), y] = 0
+  
+  loss = np.sum(margin[margin >0])  / num_train
+
+  # Add regularization to the loss.
+  loss += 0.5 * reg * np.sum(W * W)  
+    
   #############################################################################
   #                             END OF YOUR CODE                              #
   #############################################################################
@@ -94,7 +106,19 @@ def svm_loss_vectorized(W, X, y, reg):
   # to reuse some of the intermediate values that you used to compute the     #
   # loss.                                                                     #
   #############################################################################
-  pass
+
+  num_pos = np.sum(margin > 0, axis=1) # number of positive losses
+
+  dscores = np.zeros(scores.shape)
+
+  dscores[margin > 0] = 1
+  dscores[np.arange(num_train),y] = -num_pos
+
+  # Average gradients as well
+  dW = X.T.dot(dscores) / num_train 
+
+  # Add regularization to the gradient
+  dW += reg * W  
   #############################################################################
   #                             END OF YOUR CODE                              #
   #############################################################################
