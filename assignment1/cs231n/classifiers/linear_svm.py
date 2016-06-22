@@ -52,16 +52,6 @@ def svm_loss_naive(W, X, y, reg):
   # Add regularization to the gradient
   dW += reg * W
 
-  #############################################################################
-  # TODO:                                                                     #
-  # Compute the gradient of the loss function and store it dW.                #
-  # Rather that first computing the loss and then computing the derivative,   #
-  # it may be simpler to compute the derivative at the same time that the     #
-  # loss is being computed. As a result you may need to modify some of the    #
-  # code above to compute the gradient.                                       #
-  #############################################################################
-
-
   return loss, dW
 
 
@@ -73,12 +63,6 @@ def svm_loss_vectorized(W, X, y, reg):
   """
   loss = 0.0
   dW = np.zeros(W.shape) # initialize the gradient as zero
-
-  #############################################################################
-  # TODO:                                                                     #
-  # Implement a vectorized version of the structured SVM loss, storing the    #
-  # result in loss.                                                           #
-  #############################################################################
  
   num_train = X.shape[0]  
   scores = X.dot(W)  
@@ -92,21 +76,6 @@ def svm_loss_vectorized(W, X, y, reg):
   # Add regularization to the loss.
   loss += 0.5 * reg * np.sum(W * W)  
     
-  #############################################################################
-  #                             END OF YOUR CODE                              #
-  #############################################################################
-
-
-  #############################################################################
-  # TODO:                                                                     #
-  # Implement a vectorized version of the gradient for the structured SVM     #
-  # loss, storing the result in dW.                                           #
-  #                                                                           #
-  # Hint: Instead of computing the gradient from scratch, it may be easier    #
-  # to reuse some of the intermediate values that you used to compute the     #
-  # loss.                                                                     #
-  #############################################################################
-
   num_pos = np.sum(margin > 0, axis=1) # number of positive losses
 
   dscores = np.zeros(scores.shape)
@@ -119,8 +88,5 @@ def svm_loss_vectorized(W, X, y, reg):
 
   # Add regularization to the gradient
   dW += reg * W  
-  #############################################################################
-  #                             END OF YOUR CODE                              #
-  #############################################################################
 
   return loss, dW
