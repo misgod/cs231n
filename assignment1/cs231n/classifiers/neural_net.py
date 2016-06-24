@@ -69,16 +69,13 @@ class TwoLayerNet(object):
 
     # Compute the forward pass
     scores = None
-    #############################################################################
-    # TODO: Perform the forward pass, computing the class scores for the input. #
-    # Store the result in the scores variable, which should be an array of      #
-    # shape (N, C).                                                             #
-    #############################################################################
-    pass
-    #############################################################################
-    #                              END OF YOUR CODE                             #
-    #############################################################################
-    
+
+    # f = lambda x : 1.0/(1.0 + np.exp(-x)) #activation function(use sigmoid)
+    f = lambda x : np.maximum(0,x) #activation function(use ReLU)
+        
+    h1 = f(X.dot(W1) + b1)
+    scores = h1.dot(W2) +b2
+
     # If the targets are not given then jump out, we're done
     if y is None:
       return scores
@@ -92,7 +89,17 @@ class TwoLayerNet(object):
     # classifier loss. So that your results match ours, multiply the            #
     # regularization loss by 0.5                                                #
     #############################################################################
-    pass
+    scores -= np.max(scores)
+
+    correct_score = scores[np.arange(N),y]  
+    sum_i = np.sum(np.exp(scores),axis=1)
+    p = np.exp(correct_score) / sum_i  
+    loss = np.sum(- np.log(p))
+    loss /= N
+    
+    # Add regularization to the loss.
+    loss += 0.5*reg*np.sum(W1*W1) + 0.5*reg*np.sum(W2*W2)
+      
     #############################################################################
     #                              END OF YOUR CODE                             #
     #############################################################################
