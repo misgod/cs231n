@@ -73,8 +73,8 @@ class TwoLayerNet(object):
     # f = lambda x : 1.0/(1.0 + np.exp(-x)) #activation function(use sigmoid)
     f = lambda x : np.maximum(0,x) #activation function(use ReLU)
         
-    h1 = f(X.dot(W1) + b1)
-    scores = h1.dot(W2) +b2
+    X1 = f(X.dot(W1) + b1)
+    scores = X1.dot(W2) +b2
 
     # If the targets are not given then jump out, we're done
     if y is None:
@@ -91,11 +91,16 @@ class TwoLayerNet(object):
     #############################################################################
     scores -= np.max(scores)
 
-    correct_score = scores[np.arange(N),y]  
-    sum_i = np.sum(np.exp(scores),axis=1)
-    p = np.exp(correct_score) / sum_i  
-    loss = np.sum(- np.log(p))
-    loss /= N
+    
+    # get unnormalized probabilities
+    exp_scores = np.exp(scores)
+    
+    # normalize them for each example
+    probs = exp_scores / np.sum(exp_scores, axis=1, keepdims=True)
+    
+    correct_props = probs[range(N),y]
+
+    loss = np.sum(- np.log(correct_props)) / N
     
     # Add regularization to the loss.
     loss += 0.5*reg*np.sum(W1*W1) + 0.5*reg*np.sum(W2*W2)
@@ -111,7 +116,24 @@ class TwoLayerNet(object):
     # and biases. Store the results in the grads dictionary. For example,       #
     # grads['W1'] should store the gradient on W1, and be a matrix of same size #
     #############################################################################
-    pass
+   
+    #http://cs231n.github.io/neural-networks-case-study/#grad
+    dscores = probs
+    dscores[range(N),y] -= 1
+    dscores /= N
+    
+    grads['W2'] = np.dot(X1.T, dscores) + reg*W2
+    grads['b2'] =  np.sum(dscores, axis=0, keepdims=True)
+    
+    dX1 = np.dot(dscores, W2.T)
+    # backprop the ReLU non-linearity
+    dX1[X1 <= 0] = 0
+    
+    # finally into W,b
+    grads['W1'] = np.dot(X.T, dX1) +  reg*W1
+    grads['b1'] = np.sum(dX1, axis=0, keepdims=True)
+    
+
     #############################################################################
     #                              END OF YOUR CODE                             #
     #############################################################################
@@ -155,7 +177,10 @@ class TwoLayerNet(object):
       # TODO: Create a random minibatch of training data and labels, storing  #
       # them in X_batch and y_batch respectively.                             #
       #########################################################################
-      pass
+      indices = np.random.choice(X.shape[0], batch_size, replace=True)
+      X_batch = X[indices,:]
+      y_batch = y[indices]
+
       #########################################################################
       #                             END OF YOUR CODE                          #
       #########################################################################
@@ -170,7 +195,13 @@ class TwoLayerNet(object):
       # using stochastic gradient descent. You'll need to use the gradients   #
       # stored in the grads dictionary defined above.                         #
       #########################################################################
-      pass
+      # perform a parameter update   
+
+      self.params['W1'] += -learning_rate * grads['W1']  
+      self.params['b1'] += -learning_rate * grads['b1'][0,:]
+      self.params['W2'] += -learning_rate * grads['W2']  
+      self.params['b2'] += -learning_rate * grads['b2'][0,:]
+
       #########################################################################
       #                             END OF YOUR CODE                          #
       #########################################################################
@@ -180,7 +211,7 @@ class TwoLayerNet(object):
 
       # Every epoch, check train and val accuracy and decay learning rate.
       if it % iterations_per_epoch == 0:
-        # Check accuracy
+        # Check accuracy               
         train_acc = (self.predict(X_batch) == y_batch).mean()
         val_acc = (self.predict(X_val) == y_val).mean()
         train_acc_history.append(train_acc)
@@ -215,7 +246,14 @@ class TwoLayerNet(object):
     ###########################################################################
     # TODO: Implement this function; it should be VERY simple!                #
     ###########################################################################
-    pass
+    W1, b1 = self.params['W1'], self.params['b1']
+    W2, b2 = self.params['W2'], self.params['b2']
+    
+    f = lambda x : np.maximum(0,x) #activation function(use ReLU)
+
+    X1 = f(X.dot(W1) + b1)
+    X2 = X1.dot(W2) +b2
+    y_pred = X2.argmax(axis=1)
     ###########################################################################
     #                              END OF YOUR CODE                           #
     ###########################################################################
