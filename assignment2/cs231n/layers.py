@@ -139,20 +139,6 @@ def batchnorm_forward(x, gamma, beta, bn_param):
 
   out, cache = None, None
   if mode == 'train':
-    #############################################################################
-    # TODO: Implement the training-time forward pass for batch normalization.   #
-    # Use minibatch statistics to compute the mean and variance, use these      #
-    # statistics to normalize the incoming data, and scale and shift the        #
-    # normalized data using gamma and beta.                                     #
-    #                                                                           #
-    # You should store the output in the variable out. Any intermediates that   #
-    # you need for the backward pass should be stored in the cache variable.    #
-    #                                                                           #
-    # You should also use your computed sample mean and variance together with  #
-    # the momentum variable to update the running mean and running variance,    #
-    # storing your result in the running_mean and running_var variables.        #
-    #############################################################################
-
     m  = np.mean(x ,axis=0)
     var = np.var(x, axis=0)
     
@@ -164,21 +150,9 @@ def batchnorm_forward(x, gamma, beta, bn_param):
     running_var = momentum * running_var + (1 - momentum) * var
     
     cache = (m,var, x_hat, x, gamma, beta, eps )
-    #############################################################################
-    #                             END OF YOUR CODE                              #
-    #############################################################################
   elif mode == 'test':
-    #############################################################################
-    # TODO: Implement the test-time forward pass for batch normalization. Use   #
-    # the running mean and variance to normalize the incoming data, then scale  #
-    # and shift the normalized data using gamma and beta. Store the result in   #
-    # the out variable.                                                         #
-    #############################################################################
     x_hat = (x - running_mean) / np.sqrt(running_var)
     out = x_hat * gamma + beta
-    #############################################################################
-    #                             END OF YOUR CODE                              #
-    #############################################################################
   else:
     raise ValueError('Invalid forward batchnorm mode "%s"' % mode)
 
@@ -207,10 +181,7 @@ def batchnorm_backward(dout, cache):
   - dbeta: Gradient with respect to shift parameter beta, of shape (D,)
   """
   dx, dgamma, dbeta = None, None, None
-  #############################################################################
-  # TODO: Implement the backward pass for batch normalization. Store the      #
-  # results in the dx, dgamma, and dbeta variables.                           #
-  #############################################################################
+
   mean,var, x_hat, x, gamma, beta, eps  = cache
   m = dout.shape[0]
 
@@ -223,9 +194,6 @@ def batchnorm_backward(dout, cache):
 
   dgamma = np.sum(dout * x_hat, axis=0) 
   dbeta = np.sum(dout ,axis=0)  
-  #############################################################################
-  #                             END OF YOUR CODE                              #
-  #############################################################################
 
   return dx, dgamma, dbeta
 
@@ -346,10 +314,39 @@ def conv_forward_naive(x, w, b, conv_param):
   # TODO: Implement the convolutional forward pass.                           #
   # Hint: you can use the function np.pad for padding.                        #
   #############################################################################
-  pass
-  #############################################################################
-  #                             END OF YOUR CODE                              #
-  #############################################################################
+  stride = conv_param['stride']
+  pad = conv_param['pad']  
+  
+    
+  N, C, H, W = x.shape
+  F, CC, HH, WW = w.shape
+
+
+  H_out = 1 + (H + 2 * pad - HH) / stride
+  W_out = 1 + (W + 2 * pad - WW) / stride
+  out = np.zeros((N, F, H_out, W_out)) 
+    
+  padded_x = np.pad(x, ((0,0),(0,0),(pad,pad), (pad,pad)), mode='constant', constant_values=0)
+
+
+  _,_,pH,pW = padded_x.shape
+
+  for n in xrange(N):
+      x_data = padded_x[n]
+      yy = -1
+        
+      for yi in range(0, pH-HH+1, stride):
+        yy += 1
+        xx = -1
+        for xi in range(0, pW-WW+1, stride):     
+            xx += 1
+            
+            x_o = x_data[:,yi:yi+HH, xi:xi+WW]
+           
+            for d in xrange(F):
+              conv_value = np.sum(x_o * w[d]) + b[d]
+              out[n, d, yy, xx] = conv_value
+
   cache = (x, w, b, conv_param)
   return out, cache
 
