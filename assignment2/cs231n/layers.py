@@ -449,9 +449,8 @@ def max_pool_backward_naive(dout, cache):
   - dx: Gradient with respect to x
   """
   dx = None
-  #############################################################################
-  # TODO: Implement the max pooling backward pass                             #
-  #############################################################################
+
+
   x, pool_param = cache
   N, C, H, W = x.shape
 
@@ -462,8 +461,9 @@ def max_pool_backward_naive(dout, cache):
   H_out = (H-pool_height) / stride +1
   W_out = (W-pool_width) / stride +1
     
+
   dx = np.zeros_like(x)
-    
+
   for n in xrange(N):
     for c in xrange(C):
       for h in xrange(H_out):
@@ -475,12 +475,8 @@ def max_pool_backward_naive(dout, cache):
         
           window = x[n,c,h1:h2,w1:w2]
           mask = (window == np.max(window))  
-          # Gradient of max is indicator
           dx[n,c,h1:h2,w1:w2] += mask * dout[n,c,h,w]
-   
-  #############################################################################
-  #                             END OF YOUR CODE                              #
-  #############################################################################
+
   return dx
 
 
